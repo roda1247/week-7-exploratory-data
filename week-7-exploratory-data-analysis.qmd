@@ -1,5 +1,6 @@
 ---
 title: "Exploratory Data Analysis"
+author: "Bianca Rodas"
 format: html
 execute: 
   echo: true
@@ -14,7 +15,7 @@ library(tidyverse)
 
 ```{r}
 #| label: load-babynames
-babynames <- read_csv("babynames_500.csv")
+babynames <- read_csv("data/babynames_500.csv")
 ```
 
 
@@ -27,7 +28,8 @@ babynames <- read_csv("babynames_500.csv")
 
 babynames |> 
   summarize(total = sum(n),
-            max = max(n))
+            max = max(n),
+            min_year = min(year))
 ```
 
 
@@ -43,10 +45,10 @@ Complete the code below to extract the rows where `name == "Lincoln"`. Then use 
 ```{r}
 #| label: popularity-lincoln
 
-babynames ___ 
-  filter(_______________________) ___
-  ___________(total = ________, 
-              first = _______)
+babynames |>  
+  filter(name == "Lincoln") |> 
+  summarise(total = sum(n), 
+              first = min(year))
 ```
 
 
@@ -115,7 +117,7 @@ pollution |>
 #| label: summarize-city-pollution
 
 pollution |> 
-  group_by(city) |> #only new line of code
+  group_by(size) |> #only new line of code
   summarize(mean = mean(amount),
             sum = sum(amount),
             n = n())
@@ -142,13 +144,29 @@ Use `group_by()`, `summarise()`, and `arrange()` to display the ten most popular
 *(Hint: Be sure to remove each `_` before running the code)*
 
 ```{r}
+top_10 <- babynames |>
+  filter(year >=2005) |> 
+  group_by(name, sex) |>  
+  summarize(total = sum(n)) |> 
+  arrange(desc(total)) |> 
+  head(10)
+```
+
+
+```{r}
 #| label: top-10-names
 
-babynames |> 
-  _______(name, sex) |>  
-  _______(total = _____(n)) |> 
-  _______(desc(_____)) |> 
-  head(10)
+ top_10 |> 
+  ggplot(mapping= aes(x=fct_reorder(name, desc(total)),
+                      y=total,
+                      fill=sex))+
+  geom_col()+
+  scale_fill_brewer()+
+  theme_light()+
+  labs(x="Top 10 Popular Namesn in Top 500",
+       y="Total Number of Infants Born in Top 500",
+       fill="Sex",
+       title="Names Since 2005")
 ```
 
 
@@ -187,8 +205,8 @@ Rank each name _within its year and sex_.
 
 babynames |> 
   select(name, year, sex, prop) |> 
-  group_by(____, ____) |> 
-  ______(rank = min_rank(____(prop))) |> 
+  group_by(year, sex) |> 
+  mutate(rank = min_rank(desc(prop))) |> 
   arrange(year, sex, rank)
 ```
 
